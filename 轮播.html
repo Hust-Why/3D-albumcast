@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>相框展示效果</title>
+	<link rel="stylesheet" type="text/css" href="mycss/button_css.css">
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+		}body{
+			background-color: 	#FFFF00;
+			overflow:hidden;
+			perspective:800px;
+		}
+		.Carousel{
+			position: relative;
+			margin: 80px auto;
+			height: 150px;
+			transform-style: preserve-3d;
+		}
+		.Carousel img:hover{
+			cursor:pointer;
+		}
+		.Carousel img{
+			border: 2px solid silver;
+			position: absolute;
+			width: 280px;
+			height: 340px;
+			-webkit-box-reflect:below 0      /*盒子阴影  照片阴影*/
+			-webkit-linear-gradient(top,rgba(0,0,0,0.1),rgba(0,0,0,0.5));
+			transition: all 1s ;	   /*渐变*/
+			/*transform: rotateY(45deg);	 */    /*旋转*/
+		}
+		.Carousel img.left{
+			transform: rotateY(45deg) translateZ(-100px);	     /*旋转*/
+			border-image:url(image/timg2.jpg) 10 20 5 10 round;
+			border-width:10px 10px;
+		}
+		.Carousel img.right{
+			transform: rotateY(-45deg) translateZ(-100px);	     /*旋转*/
+			border-image:url(image/timg5.jpg) 10 20 5 10 round;
+			border-width:10px 10px;
+		}
+		.Carousel img.center{
+			transform: translateZ(70px);   	  /*中间图片 平移前面点*/
+			border-image:url(image/timg7.jpg) 10 20 5 10 round;
+			border-width:23px 23px;
+		}
+		.Carousel #mybutton,#mybutton1,#mybutton2{
+			position: absolute;
+			right: 100px;
+			font-size: 20px;
+			width: 230px;
+		}
+		.Carousel #mybutton{
+			top: 620px;
+		}
+		.Carousel #mybutton1{
+			top: 670px;
+		}
+		.Carousel #mybutton2{
+			top: 720px;
+		}
+	</style>
+</head>
+
+
+<body>
+	 <div class="Carousel"><!-- js 10张图片放置在这-->
+		<button id = "mybutton" class="button button-glow button-border button-rounded button-primary">本宝要正向播放</button>
+		<button id = "mybutton1" class="button button-glow button-border button-rounded button-primary">本宝要反向播放</button>
+		<button id = "mybutton2" class="button button-glow button-border button-rounded button-primary">本宝不想播放了</button>
+	 </div>
+</body>
+
+
+<script type="text/javascript">
+		window.onload =function () {
+			//js 10张图片放置在这
+			oDiv1 = document.getElementsByTagName("div")[0];	
+			var oImg = [];
+			for (var i = 0; i < 13; i++) {
+				oImg[i]  = document.createElement("img");
+				oImg[i].src = "image/"+(i+1)+".jpg";
+				//console.log(oImg[i]);		//oImg[i]是图片的集合
+				oDiv1.appendChild(oImg[i]);
+			}
+
+			//var current = ~~(oImg.length/2);  //利用 ~~ 获取最中间的图片的数值
+			var count = 0;
+			var current = Math.floor(oImg.length/2);  //获取最中间的图片的数值
+					//oImg[current];				  //获取最中间的图片
+			function init () {					      //初始化页面的函数
+				var w = window.innerWidth;			  //获取浏览器当前宽度
+				for (var i = 0; i < oImg.length; i++) {//设置左边图片
+					oImg[i].style.left = w/2-140 -(current-i)*90+ 'px';
+					if (i < current) {
+						oImg[i].className = "left";
+					}else if (i === current) {
+						oImg[current].className = "center";	//设置中间图片
+						//oImg[current].style.left = w/2-150 + 'px';
+					}else {
+						oImg[i].className = "right";
+					}
+				}
+			}
+			init();								      //调用初始化页面的函数
+			addEventListener('mousewheel',scrollFunc,false); 	//增加鼠标滚动事件监听器
+			function scrollFunc(e) {
+			 	clearInterval(timer);			//一滚动就不自动播放
+			 	e = e||window.evevt;
+				count++;       
+                if (e.wheelDelta > 0) { 
+                    //当滑轮向上滚动时执行的代码段 
+                   rollUp();
+                }  
+                if (e.wheelDelta < 0) { 
+                    //当滑轮向下滚动时执行的代码段   
+                   mesTime();
+				  // count = 0;
+                }  			
+			}
+			var timer = null;						  //定时器初值，以便清空定时器
+			for(let i = 0; i < oImg.length; i++){				//利用let来设置局部变量
+				oImg[i].addEventListener('click',function () {	//必须得用事件监听器，而不能用事件处理器
+					current = i;
+					init ();
+				}, false); 
+			}		
+			// 	   //或者用自调用＋闭包实现 见下
+			//  for(var i = 0; i < oImg.length; i++){
+			//     oImg[i].addEventListener('click',			//必须得用事件监听器，而不能用事件处理器
+			//     	(function (j) {
+			// 			return function () {		
+			// 				clearInterval(timer);			//清空定时器
+			// 		 		timer =  setInterval(mesTime , 2000);		
+			// 				current = j;
+			// 				init ();
+			// 			}
+			// 		})(i) ,
+			// 	false);
+			// }
+			//timer =  setInterval(mesTime , 2000);			//初始自动循环播放
+			function mesTime () {
+				current = ((current+1 ) % oImg.length);		//循环播放
+				init ();
+			}
+			function rollUp () {							//反向播放
+				current = current-1 ;	
+				if (current < 0) {
+						current =  oImg.length-1;
+					}	
+				init ();
+			}
+
+			var oButton = document.getElementsByTagName("button");		//获取停止和播放按钮 0是播放
+			oButton[0].addEventListener('click',function () {			//播放
+				clearInterval(timer);						//清空定时器
+				timer =  setInterval(mesTime , 2000);		//开始顺向播放
+				init ();
+			}, false);
+			oButton[1].addEventListener('click',function () {			//播放
+				clearInterval(timer);						//清空定时器
+				timer =  setInterval(rollUp , 2000);		//开始反向播放
+				init ();
+			}, false);  
+			oButton[2].addEventListener('click',function () {	     	//停止
+				if (confirm("臭不拉，确定不播放了？")) {
+					clearInterval(timer);									//清空定时器
+					init ();
+				}
+			}, false); 
+		}
+</script>
+</html>
